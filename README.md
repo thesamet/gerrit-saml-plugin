@@ -7,9 +7,11 @@ provider.
 
 Gerrit looks for 3 attributes (which are configurable) in the AttributeStatement:
 
-*DisplayName:* the full name of the user.
-*EmailAddress:* email address of the user.
-*UserName:* username (used for ssh).
+**DisplayName:** the full name of the user.
+
+**EmailAddress:** email address of the user.
+
+**UserName:** username (used for ssh).
 
 If any of these attributes is not found in the assertion, their value is
 taken from the NameId field of the SAML assertion.
@@ -28,7 +30,7 @@ taken from the NameId field of the SAML assertion.
       "user.displayName"
     - Add attribute statement: Name: "EmailAddress" with Value
       "user.email"
-    - *IMPORTANT*: If you are not using Okta, you need to set up an attribute
+    - **IMPORTANT**: If you are not using Okta, you need to set up an attribute
       "UserName" with the value of the username (not email, without @). If you
       do not do so, the name will be taken from the NameId provided by
       the assertion.  This is why in Okta we set the application username to
