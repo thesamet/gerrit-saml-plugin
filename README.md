@@ -7,11 +7,9 @@ provider.
 
 Gerrit looks for 3 attributes (which are configurable) in the AttributeStatement:
 
-**DisplayName:** the full name of the user.
-
-**EmailAddress:** email address of the user.
-
-**UserName:** username (used for ssh).
+- **DisplayName:** the full name of the user.
+- **EmailAddress:** email address of the user.
+- **UserName:** username (used for ssh).
 
 If any of these attributes is not found in the assertion, their value is
 taken from the NameId field of the SAML assertion.
