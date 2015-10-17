@@ -32,6 +32,7 @@ import org.pac4j.saml.profile.SAML2Profile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -45,6 +46,7 @@ import java.util.List;
 @Singleton
 class SamlWebFilter implements Filter {
     static final String GERRIT_LOGOUT = "/logout";
+    static final String GERRIT_LOGIN = "/login";
     static final String SAML_POSTBACK = "/plugins/gerrit-saml-plugin/saml";
 
     private static final String SESSION_ATTR_USER = "Gerrit-Saml-User";
@@ -126,8 +128,7 @@ class SamlWebFilter implements Filter {
                     "saml/" + user.getId()));
 
             String redirectUri = context.getRequest().getParameter("RelayState");
-            log.debug("Got {}", redirectUri);
-            if (null == redirectUri) {
+            if (null == redirectUri || redirectUri.isEmpty()) {
                 redirectUri = "/";
             }
             context.getResponse().sendRedirect(redirectUri);
@@ -143,9 +144,13 @@ class SamlWebFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response,
+    public void doFilter(ServletRequest incomingRequest, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        /* The first thing we do is to wrap the request in an anonymous request, so in case
+           a malicious user is trying to set the headers manually, they'll be discarded.
+         */
+        HttpServletRequest httpRequest = new AnonymousHttpRequest(
+                (HttpServletRequest) incomingRequest);
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         AuthenticatedUser user = userFromRequest(httpRequest);
 
@@ -153,31 +158,22 @@ class SamlWebFilter implements Filter {
             if (isSamlPostback(httpRequest)) {
                 J2EContext context = new J2EContext(httpRequest, httpResponse);
                 signin(context);
+            } else if (isGerritLogin(httpRequest)) {
+                if (user == null) {
+                    J2EContext context = new J2EContext(httpRequest, httpResponse);
+                    redirectToIdentityProvider(context);
+                } else {
+                    HttpServletRequest req = new AuthenticatedHttpRequest(httpRequest, user);
+                    chain.doFilter(req, response);
+                }
             } else if (isGerritLogout(httpRequest)) {
                 signout(httpRequest, httpResponse);
-            } else if (isAllowedWithoutAuth(httpRequest)) {
-                // We allow URLs to continue without a user (and hence without the authentication
-                // headers.  It is up for Gerrit to approve or deny these requests.  We do it
-                // specifically for favicon.ico:  it could be that during a normal authentication
-                // redirect, the browser will try to fetch /favicon.ico which will start a
-                // parallel authentication process, but it will override the redirectUri and the
-                // user will be redirected to /favicon.ico.  This would have been eliminated
-                // if pac4j would allow obtaining RelayState...
-                chain.doFilter(httpRequest, response);
-            } else if (user == null) {
-                J2EContext context = new J2EContext(httpRequest, httpResponse);
-                redirectToIdentityProvider(context);
             } else {
-                HttpServletRequest req = new AuthenticatedHttpRequest(httpRequest, user);
-                chain.doFilter(req, response);
+                chain.doFilter(httpRequest, httpResponse);
             }
         } catch (final RequiresHttpAction requiresHttpAction) {
             throw new TechnicalException("Unexpected HTTP action", requiresHttpAction);
         }
-    }
-
-    private boolean isAllowedWithoutAuth(HttpServletRequest httpRequest) {
-        return (httpRequest.getRequestURI().equals("/favicon.ico"));
     }
 
     private void redirectToIdentityProvider(J2EContext context)
@@ -190,6 +186,10 @@ class SamlWebFilter implements Filter {
         context.setSessionAttribute(SAML2Client.SAML_RELAY_STATE_ATTRIBUTE, redirectUri);
         log.debug("Setting redirectUri: {}", redirectUri);
         saml2Client.redirect(context, true);
+    }
+
+    private static boolean isGerritLogin(HttpServletRequest request) {
+        return request.getRequestURI().indexOf(GERRIT_LOGIN) >= 0;
     }
 
     private static boolean isGerritLogout(HttpServletRequest request) {
@@ -244,7 +244,7 @@ class SamlWebFilter implements Filter {
         private AuthenticatedUser user;
 
         public AuthenticatedHttpRequest(HttpServletRequest request,
-                                        AuthenticatedUser user) {
+                                        @Nonnull AuthenticatedUser user) {
             super(request);
             this.user = user;
         }
@@ -270,6 +270,36 @@ class SamlWebFilter implements Filter {
                 return user.getEmail();
             } else if (httpExternalIdHeader.equals(nameUpperCase)) {
                 return user.getExternalId();
+            } else {
+                return super.getHeader(name);
+            }
+        }
+    }
+
+    private class AnonymousHttpRequest extends HttpServletRequestWrapper {
+        public AnonymousHttpRequest(HttpServletRequest request) {
+            super(request);
+        }
+
+        @Override
+        public Enumeration<String> getHeaderNames() {
+            final Enumeration<String> wrappedHeaderNames = super.getHeaderNames();
+
+            HashSet<String> headerNames = new HashSet<>();
+            while (wrappedHeaderNames.hasMoreElements()) {
+                String header = wrappedHeaderNames.nextElement();
+                if (!authHeaders.contains(header.toUpperCase())) {
+                    headerNames.add(wrappedHeaderNames.nextElement());
+                }
+            }
+            return Iterators.asEnumeration(headerNames.iterator());
+        }
+
+        @Override
+        public String getHeader(String name) {
+            String nameUpperCase = name.toUpperCase();
+            if (authHeaders.contains(nameUpperCase)) {
+                return null;
             } else {
                 return super.getHeader(name);
             }

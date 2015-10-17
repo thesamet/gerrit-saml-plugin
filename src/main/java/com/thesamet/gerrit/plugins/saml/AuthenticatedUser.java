@@ -6,11 +6,11 @@ public class AuthenticatedUser implements java.io.Serializable {
     private String email;
     private String externalId;
 
-    public AuthenticatedUser(String username, String displayName, String email, String extenalId) {
+    public AuthenticatedUser(String username, String displayName, String email, String externalId) {
         this.username = username;
         this.displayName = displayName;
         this.email = email;
-        this.externalId = extenalId;
+        this.externalId = externalId;
     }
 
     public String getUsername() {
