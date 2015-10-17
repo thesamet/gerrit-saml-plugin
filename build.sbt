@@ -1,8 +1,8 @@
 name := "gerrit-saml-plugin"
 
-val GerritVersion = "2.11.3"
+val GerritVersion = "2.11.4"
 
-version := GerritVersion + "-1"
+version := GerritVersion + "-2"
 
 javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
