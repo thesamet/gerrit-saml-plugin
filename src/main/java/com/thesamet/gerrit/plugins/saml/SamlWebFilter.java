@@ -19,7 +19,6 @@ import com.google.common.collect.Sets;
 import com.google.gerrit.extensions.restapi.Url;
 import com.google.gerrit.server.config.GerritServerConfig;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import org.eclipse.jgit.lib.Config;
 import org.pac4j.core.context.J2EContext;
@@ -52,7 +51,6 @@ class SamlWebFilter implements Filter {
     private static final String SESSION_ATTR_USER = "Gerrit-Saml-User";
 
     static final Logger log = LoggerFactory.getLogger(SamlWebFilter.class);
-    private final Injector injector;
     private final SAML2Client saml2Client;
     private final SamlConfig samlConfig;
     private final String httpUserNameHeader;
@@ -60,7 +58,6 @@ class SamlWebFilter implements Filter {
     private final String httpEmailHeader;
     private final String httpExternalIdHeader;
     private final HashSet<String> authHeaders;
-    private final String logoutUrl;
 
     private String getHeaderFromConfig(Config gerritConfig, String name) {
         String s = gerritConfig.getString("auth", null, name);
@@ -68,8 +65,7 @@ class SamlWebFilter implements Filter {
     }
 
     @Inject
-    SamlWebFilter(Injector injector, @GerritServerConfig Config gerritConfig, SamlConfig samlConfig) {
-        this.injector = injector;
+    SamlWebFilter(@GerritServerConfig Config gerritConfig, SamlConfig samlConfig) {
         this.samlConfig = samlConfig;
         saml2Client =
                 new SAML2Client(new SAML2ClientConfiguration(
@@ -93,7 +89,6 @@ class SamlWebFilter implements Filter {
                     "httpDisplaynameHeader, httpEmailHeader and httpExternalIdHeader " +
                     "are required.");
         }
-        logoutUrl = gerritConfig.getString("auth", null, "logoutUrl");
 
         saml2Client.setCallbackUrl(callbackUrl);
     }
@@ -132,15 +127,7 @@ class SamlWebFilter implements Filter {
                 redirectUri = "/";
             }
             context.getResponse().sendRedirect(context.getRequest().getContextPath() + redirectUri);
-        } else {
-            signout(context.getRequest(), context.getResponse());
         }
-    }
-
-    private void signout(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        HttpSession s = request.getSession();
-        s.removeAttribute(SESSION_ATTR_USER);
-        response.sendRedirect(logoutUrl);
     }
 
     @Override
@@ -167,7 +154,8 @@ class SamlWebFilter implements Filter {
                     chain.doFilter(req, response);
                 }
             } else if (isGerritLogout(httpRequest)) {
-                signout(httpRequest, httpResponse);
+                httpRequest.getSession().removeAttribute(SESSION_ATTR_USER);
+                chain.doFilter(httpRequest, httpResponse);
             } else {
                 chain.doFilter(httpRequest, httpResponse);
             }
