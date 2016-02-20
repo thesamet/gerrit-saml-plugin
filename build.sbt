@@ -1,6 +1,6 @@
 name := "gerrit-saml-plugin"
 
-val GerritVersion = "2.11.5"
+val GerritVersion = "2.12"
 
 version := GerritVersion + "-1"
 
