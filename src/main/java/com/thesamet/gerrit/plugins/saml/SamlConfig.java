@@ -32,6 +32,8 @@ public class SamlConfig {
   private final String displayNameAttr;
   private final String userNameAttr;
   private final String emailAddressAttr;
+  private final String maxAuthLifetimeAttr;
+  private final int maxAuthLifetimeDefault = 24 * 60 * 60; // 24h;
 
   @Inject
   SamlConfig(@GerritServerConfig final Config cfg) {
@@ -44,6 +46,8 @@ public class SamlConfig {
     userNameAttr = getGetStringWithDefault(cfg, "userNameAttr", "UserName");
     emailAddressAttr =
         getGetStringWithDefault(cfg, "emailAddressAttr", "EmailAddress");
+    maxAuthLifetimeAttr =
+            getGetStringWithDefault(cfg, "maxAuthLifetime", Integer.toString(maxAuthLifetimeDefault));
   }
 
   public String getMetadataPath() {
@@ -72,6 +76,19 @@ public class SamlConfig {
 
   public String getEmailAddressAttr() {
     return emailAddressAttr;
+  }
+
+  public String getMaxAuthLifetimeAttr() { return maxAuthLifetimeAttr; }
+
+  public int getMaxAuthLifetime() {
+    int maxLifetime;
+    try {
+      maxLifetime = Integer.parseInt(getMaxAuthLifetimeAttr());
+    } catch (NumberFormatException nfe) {
+      SamlWebFilter.logError("Error reading \"maxAuthLifetime\" attribute in gerrit.config. Please use digits only");
+      throw nfe;  //rethrow so the server stops launching.
+    }
+    return maxLifetime;
   }
 
   private static String getString(Config cfg, String name) {

@@ -22,7 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.eclipse.jgit.lib.Config;
 import org.pac4j.core.context.J2EContext;
-import org.pac4j.core.exception.RequiresHttpAction;
+import org.pac4j.core.exception.HttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.saml.client.SAML2Client;
 import org.pac4j.saml.client.SAML2ClientConfiguration;
@@ -67,10 +67,13 @@ class SamlWebFilter implements Filter {
     @Inject
     SamlWebFilter(@GerritServerConfig Config gerritConfig, SamlConfig samlConfig) {
         this.samlConfig = samlConfig;
+        log.info("Max Authentication Lifetime: "+ samlConfig.getMaxAuthLifetime());
+        SAML2ClientConfiguration samlClientConfig = new SAML2ClientConfiguration(
+                samlConfig.getKeystorePath(), samlConfig.getKeystorePassword(),
+                samlConfig.getPrivateKeyPassword(), samlConfig.getMetadataPath());
+        samlClientConfig.setMaximumAuthenticationLifetime(samlConfig.getMaxAuthLifetime());
         saml2Client =
-                new SAML2Client(new SAML2ClientConfiguration(
-                        samlConfig.getKeystorePath(), samlConfig.getKeystorePassword(),
-                        samlConfig.getPrivateKeyPassword(), samlConfig.getMetadataPath()));
+                new SAML2Client(samlClientConfig);
         String callbackUrl = gerritConfig.getString("gerrit", null, "canonicalWebUrl") + "plugins/gerrit-saml-plugin/saml";
         httpUserNameHeader = getHeaderFromConfig(gerritConfig, "httpHeader");
         httpDisplaynameHeader = getHeaderFromConfig(gerritConfig, "httpDisplaynameHeader");
@@ -109,7 +112,7 @@ class SamlWebFilter implements Filter {
         else return user;
     }
 
-    private void signin(J2EContext context) throws RequiresHttpAction, IOException {
+    private void signin(J2EContext context) throws HttpAction, IOException {
         SAML2Credentials credentials = saml2Client.getCredentials(context);
         SAML2Profile user = saml2Client.getUserProfile(credentials, context);
         if (user != null) {
@@ -159,13 +162,13 @@ class SamlWebFilter implements Filter {
             } else {
                 chain.doFilter(httpRequest, httpResponse);
             }
-        } catch (final RequiresHttpAction requiresHttpAction) {
+        } catch (final HttpAction requiresHttpAction) {
             throw new TechnicalException("Unexpected HTTP action", requiresHttpAction);
         }
     }
 
     private void redirectToIdentityProvider(J2EContext context)
-            throws RequiresHttpAction {
+            throws HttpAction {
         String redirectUri = Url.decode(context
                 .getRequest()
                 .getRequestURI()
@@ -173,7 +176,7 @@ class SamlWebFilter implements Filter {
                         context.getRequest().getContextPath().length()));
         context.setSessionAttribute(SAML2Client.SAML_RELAY_STATE_ATTRIBUTE, redirectUri);
         log.debug("Setting redirectUri: {}", redirectUri);
-        saml2Client.redirect(context, true);
+        saml2Client.redirect(context);
     }
 
     private static boolean isGerritLogin(HttpServletRequest request) {
@@ -262,6 +265,14 @@ class SamlWebFilter implements Filter {
                 return super.getHeader(name);
             }
         }
+    }
+
+    public static void logWarning(String message) {
+        log.warn(message);
+    }
+
+    public static void logError(String message) {
+        log.error(message);
     }
 
     private class AnonymousHttpRequest extends HttpServletRequestWrapper {
