@@ -67,11 +67,11 @@ class SamlWebFilter implements Filter {
     @Inject
     SamlWebFilter(@GerritServerConfig Config gerritConfig, SamlConfig samlConfig) {
         this.samlConfig = samlConfig;
-        log.info("Max Authentication Lifetime: "+ samlConfig.getMaxAuthLifetime());
+        log.debug("Max Authentication Lifetime: " + samlConfig.getMaxAuthLifetimeAttr());
         SAML2ClientConfiguration samlClientConfig = new SAML2ClientConfiguration(
                 samlConfig.getKeystorePath(), samlConfig.getKeystorePassword(),
                 samlConfig.getPrivateKeyPassword(), samlConfig.getMetadataPath());
-        samlClientConfig.setMaximumAuthenticationLifetime(samlConfig.getMaxAuthLifetime());
+        samlClientConfig.setMaximumAuthenticationLifetime(samlConfig.getMaxAuthLifetimeAttr());
         saml2Client =
                 new SAML2Client(samlClientConfig);
         String callbackUrl = gerritConfig.getString("gerrit", null, "canonicalWebUrl") + "plugins/gerrit-saml-plugin/saml";
@@ -265,14 +265,6 @@ class SamlWebFilter implements Filter {
                 return super.getHeader(name);
             }
         }
-    }
-
-    public static void logWarning(String message) {
-        log.warn(message);
-    }
-
-    public static void logError(String message) {
-        log.error(message);
     }
 
     private class AnonymousHttpRequest extends HttpServletRequestWrapper {

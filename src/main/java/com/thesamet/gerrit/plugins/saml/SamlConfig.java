@@ -25,6 +25,7 @@ import org.eclipse.jgit.lib.Config;
  */
 @Singleton
 public class SamlConfig {
+
   private final String metadataPath;
   private final String keystorePath;
   private final String privateKeyPassword;
@@ -32,7 +33,7 @@ public class SamlConfig {
   private final String displayNameAttr;
   private final String userNameAttr;
   private final String emailAddressAttr;
-  private final String maxAuthLifetimeAttr;
+  private final int maxAuthLifetimeAttr;
   private final int maxAuthLifetimeDefault = 24 * 60 * 60; // 24h;
 
   @Inject
@@ -46,8 +47,7 @@ public class SamlConfig {
     userNameAttr = getGetStringWithDefault(cfg, "userNameAttr", "UserName");
     emailAddressAttr =
         getGetStringWithDefault(cfg, "emailAddressAttr", "EmailAddress");
-    maxAuthLifetimeAttr =
-            getGetStringWithDefault(cfg, "maxAuthLifetime", Integer.toString(maxAuthLifetimeDefault));
+    maxAuthLifetimeAttr = cfg.getInt("saml", null, maxAuthLifetimeDefault);
   }
 
   public String getMetadataPath() {
@@ -78,17 +78,8 @@ public class SamlConfig {
     return emailAddressAttr;
   }
 
-  public String getMaxAuthLifetimeAttr() { return maxAuthLifetimeAttr; }
-
-  public int getMaxAuthLifetime() {
-    int maxLifetime;
-    try {
-      maxLifetime = Integer.parseInt(getMaxAuthLifetimeAttr());
-    } catch (NumberFormatException nfe) {
-      SamlWebFilter.logError("Error reading \"maxAuthLifetime\" attribute in gerrit.config. Please use digits only");
-      throw nfe;  //rethrow so the server stops launching.
-    }
-    return maxLifetime;
+  public int getMaxAuthLifetimeAttr() {
+    return maxAuthLifetimeAttr;
   }
 
   private static String getString(Config cfg, String name) {
