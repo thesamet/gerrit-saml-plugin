@@ -1,14 +1,14 @@
 name := "gerrit-saml-plugin"
 
-val GerritVersion = "2.12"
+val GerritVersion = "2.13"
 
-version := GerritVersion + "-1"
+version := GerritVersion + "-6"
 
 javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 libraryDependencies += ("com.google.gerrit" % "gerrit-plugin-api" % GerritVersion % "provided")
 
-libraryDependencies += "org.pac4j" % "pac4j-saml" % "1.8.0-RC1"
+libraryDependencies += "org.pac4j" % "pac4j-saml" % "2.0.0-RC1"
 
 libraryDependencies ~= { _ map {
   case m => m
@@ -35,7 +35,9 @@ assemblyMergeStrategy in assembly := {
   case PathList("META-INF", "INDEX.LIST") => MergeStrategy.discard
   case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
   case PathList("META-INF", "NOTICE") => MergeStrategy.discard
+  case PathList("META-INF", "NOTICE.txt") => MergeStrategy.discard
   case PathList("META-INF", "LICENSE") => MergeStrategy.concat
+  case PathList("META-INF", "LICENSE.txt") => MergeStrategy.concat
   // Trick is here: get all the initializers concatenated...
   case PathList("META-INF", "services", "org.opensaml.core.config.Initializer") => MergeStrategy.concat
   case PathList("schema", v) if v.endsWith(".xsd") => MergeStrategy.first

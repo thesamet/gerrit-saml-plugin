@@ -110,6 +110,10 @@ flag above.)
 keystore (needs to be the same as the password provided throguh the `keystore`
 flag above.)
 
+**saml.maxAuthLifetime**: (Optional) Max Authentication Lifetime configuration.
+
+Default is `86400`
+
 **saml.displayNameAttr**: Gerrit will look for an attribute with this name in
 the assertion to find a display name for the user. If the attribute is not
 found, the NameId from the SAML assertion is used instead.

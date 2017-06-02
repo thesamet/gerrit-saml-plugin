@@ -25,6 +25,7 @@ import org.eclipse.jgit.lib.Config;
  */
 @Singleton
 public class SamlConfig {
+
   private final String metadataPath;
   private final String keystorePath;
   private final String privateKeyPassword;
@@ -32,6 +33,8 @@ public class SamlConfig {
   private final String displayNameAttr;
   private final String userNameAttr;
   private final String emailAddressAttr;
+  private final int maxAuthLifetimeAttr;
+  private final int maxAuthLifetimeDefault = 24 * 60 * 60; // 24h;
 
   @Inject
   SamlConfig(@GerritServerConfig final Config cfg) {
@@ -44,6 +47,7 @@ public class SamlConfig {
     userNameAttr = getGetStringWithDefault(cfg, "userNameAttr", "UserName");
     emailAddressAttr =
         getGetStringWithDefault(cfg, "emailAddressAttr", "EmailAddress");
+    maxAuthLifetimeAttr = cfg.getInt("saml", null, maxAuthLifetimeDefault);
   }
 
   public String getMetadataPath() {
@@ -72,6 +76,10 @@ public class SamlConfig {
 
   public String getEmailAddressAttr() {
     return emailAddressAttr;
+  }
+
+  public int getMaxAuthLifetimeAttr() {
+    return maxAuthLifetimeAttr;
   }
 
   private static String getString(Config cfg, String name) {
