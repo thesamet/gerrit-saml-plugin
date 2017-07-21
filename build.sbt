@@ -1,14 +1,14 @@
 name := "gerrit-saml-plugin"
 
-val GerritVersion = "2.13"
+val GerritVersion = "2.14"
 
-version := GerritVersion + "-6"
+version := GerritVersion + "-2"
 
 javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 libraryDependencies += ("com.google.gerrit" % "gerrit-plugin-api" % GerritVersion % "provided")
 
-libraryDependencies += "org.pac4j" % "pac4j-saml" % "2.0.0-RC1"
+libraryDependencies += "org.pac4j" % "pac4j-saml" % "2.0.0"
 
 libraryDependencies ~= { _ map {
   case m => m

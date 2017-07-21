@@ -47,7 +47,7 @@ public class SamlConfig {
     userNameAttr = getGetStringWithDefault(cfg, "userNameAttr", "UserName");
     emailAddressAttr =
         getGetStringWithDefault(cfg, "emailAddressAttr", "EmailAddress");
-    maxAuthLifetimeAttr = cfg.getInt("saml", null, maxAuthLifetimeDefault);
+    maxAuthLifetimeAttr = cfg.getInt("saml", "maxAuthLifetime", maxAuthLifetimeDefault);
   }
 
   public String getMetadataPath() {
