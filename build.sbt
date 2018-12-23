@@ -4,11 +4,14 @@ val GerritVersion = "2.14"
 
 version := GerritVersion + "-2"
 
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 libraryDependencies += ("com.google.gerrit" % "gerrit-plugin-api" % GerritVersion % "provided")
 
-libraryDependencies += "org.pac4j" % "pac4j-saml" % "2.0.0"
+libraryDependencies += "org.pac4j" % "pac4j-saml" % "3.4.0"
+
+// Transitive dependency of pac4j (opensaml) is published on different Maven repository
+resolvers += "Shiboleth" at "https://build.shibboleth.net/nexus/content/repositories/releases/"
 
 libraryDependencies ~= { _ map {
   case m => m

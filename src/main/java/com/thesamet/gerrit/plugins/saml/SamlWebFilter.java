@@ -28,6 +28,7 @@ import org.pac4j.saml.client.SAML2Client;
 import org.pac4j.saml.client.SAML2ClientConfiguration;
 import org.pac4j.saml.credentials.SAML2Credentials;
 import org.pac4j.saml.profile.SAML2Profile;
+import org.pac4j.saml.state.SAML2StateGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,7 +175,8 @@ class SamlWebFilter implements Filter {
                 .getRequestURI()
                 .substring(
                         context.getRequest().getContextPath().length()));
-        context.setSessionAttribute(SAML2Client.SAML_RELAY_STATE_ATTRIBUTE, redirectUri);
+        //context.setSessionAttribute(SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE, redirectUri);
+        context.getSessionStore().set(context, SAML2StateGenerator.SAML_RELAY_STATE_ATTRIBUTE, redirectUri);
         log.debug("Setting redirectUri: {}", redirectUri);
         saml2Client.redirect(context);
     }
