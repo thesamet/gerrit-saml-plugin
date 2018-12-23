@@ -14,6 +14,7 @@
 
 package com.thesamet.gerrit.plugins.saml;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.gerrit.extensions.restapi.Url;
@@ -31,7 +32,6 @@ import org.pac4j.saml.profile.SAML2Profile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -235,9 +235,9 @@ class SamlWebFilter implements Filter {
         private AuthenticatedUser user;
 
         public AuthenticatedHttpRequest(HttpServletRequest request,
-                                        @Nonnull AuthenticatedUser user) {
+                                        AuthenticatedUser user) {
             super(request);
-            this.user = user;
+            Preconditions.checkNotNull(this.user = user);
         }
 
         @Override
