@@ -25,7 +25,7 @@ import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.exception.HttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.saml.client.SAML2Client;
-import org.pac4j.saml.client.SAML2ClientConfiguration;
+import org.pac4j.saml.config.SAML2Configuration;
 import org.pac4j.saml.credentials.SAML2Credentials;
 import org.pac4j.saml.profile.SAML2Profile;
 import org.pac4j.saml.state.SAML2StateGenerator;
@@ -69,10 +69,12 @@ class SamlWebFilter implements Filter {
     SamlWebFilter(@GerritServerConfig Config gerritConfig, SamlConfig samlConfig) {
         this.samlConfig = samlConfig;
         log.debug("Max Authentication Lifetime: " + samlConfig.getMaxAuthLifetimeAttr());
-        SAML2ClientConfiguration samlClientConfig = new SAML2ClientConfiguration(
+        SAML2Configuration samlClientConfig = new SAML2Configuration(
                 samlConfig.getKeystorePath(), samlConfig.getKeystorePassword(),
                 samlConfig.getPrivateKeyPassword(), samlConfig.getMetadataPath());
         samlClientConfig.setMaximumAuthenticationLifetime(samlConfig.getMaxAuthLifetimeAttr());
+        samlClientConfig.setServiceProviderMetadataResourceFilepath(samlConfig.getMetadataPath());
+
         saml2Client =
                 new SAML2Client(samlClientConfig);
         String callbackUrl = gerritConfig.getString("gerrit", null, "canonicalWebUrl") + "plugins/gerrit-saml-plugin/saml";
