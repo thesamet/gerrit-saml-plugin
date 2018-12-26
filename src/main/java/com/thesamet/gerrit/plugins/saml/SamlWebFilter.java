@@ -280,7 +280,7 @@ class SamlWebFilter implements Filter {
             while (wrappedHeaderNames.hasMoreElements()) {
                 String header = wrappedHeaderNames.nextElement();
                 if (!authHeaders.contains(header.toUpperCase())) {
-                    headerNames.add(wrappedHeaderNames.nextElement());
+                    headerNames.add(header);
                 }
             }
             return Iterators.asEnumeration(headerNames.iterator());
