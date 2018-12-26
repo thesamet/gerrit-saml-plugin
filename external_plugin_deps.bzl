@@ -3,10 +3,23 @@ load("//tools/bzl:maven_jar.bzl", "maven_jar")
 SHIBBOLETH = "https://build.shibboleth.net/nexus/content/repositories/releases/"
 
 def external_plugin_deps():
+    # Transitive dependency of velocity
+    maven_jar(
+        name = "commons-collections",
+        artifact = "commons-collections:commons-collections:3.2.2",
+        sha1 = "8ad72fe39fa8c91eaaf12aadb21e0c3661fe26d5",
+    )
+
     maven_jar(
         name = "cryptacular",
         artifact = "org.cryptacular:cryptacular:1.2.1",
         sha1 = "c470bac7309ac04b0b9529bd7dcb1e0b75954f11",
+    )
+
+    maven_jar(
+        name = "joda-time",
+        artifact = "joda-time:joda-time:2.9.9",
+        sha1 = "f7b520c458572890807d143670c9b24f4de90897",
     )
 
     maven_jar(
@@ -41,6 +54,13 @@ def external_plugin_deps():
         name = "opensaml-soap-impl",
         artifact = "org.opensaml:opensaml-soap-impl:3.4.0",
         sha1 = "23f0b2732c87a34c0179584e71a52839eaf9c186",
+        repository = SHIBBOLETH,
+    )
+
+    maven_jar(
+        name = "opensaml-soap-api",
+        artifact = "org.opensaml:opensaml-soap-api:3.4.0",
+        sha1 = "830b14c47a7e3e21ed377be4c82e6f19ff5c6749",
         repository = SHIBBOLETH,
     )
 
@@ -149,6 +169,12 @@ def external_plugin_deps():
         name = "stax2-api",
         artifact = "org.codehaus.woodstox:stax2-api:3.1.4",
         sha1 = "ac19014b1e6a7c08aad07fe114af792676b685b7",
+    )
+
+    maven_jar(
+        name = "velocity",
+        artifact = "org.apache.velocity:velocity:1.7",
+        sha1 = "2ceb567b8f3f21118ecdec129fe1271dbc09aa7a",
     )
 
     maven_jar(
