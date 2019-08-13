@@ -1,6 +1,11 @@
 # DISCONTINUED
 
-This repository is no longer being maintained. Gerrit Saml Plugin is now being developed at https://gerrit-review.googlesource.com/admin/repos/plugins/saml
+This repository is no longer being maintained. 
+
+Gerrit Saml Plugin is now being developed at https://gerrit.googlesource.com/plugins/saml/
+
+Please report issues by following the instructions at https://www.gerritcodereview.com/issues.html
+
 
 ----
 
